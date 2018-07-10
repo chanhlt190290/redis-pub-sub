@@ -264,3 +264,15 @@ public class ContractController {
         };
     }
 ```
+
+
+### Test result
+1. Create new contract on publis
+```shell
+curl -X POST http://localhost:8080/add  -d "name=new contract&type=1"
+```
+2. Check output in subscriber console
+```shell
+Subscriber listener started.
+channel: test-channel, message: There is a new contract has been added!
+```
