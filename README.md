@@ -84,23 +84,23 @@ public class Publisher {
 ```
 3. Create Bean for Publisher
 ```java
-	@Bean
-	Jedis getRedisClient() {
-		Jedis jedis = getJedisPool().getResource();
-		return jedis;
-	}
+@Bean
+Jedis getRedisClient() {
+	Jedis jedis = getJedisPool().getResource();
+	return jedis;
+}
 
-	@Bean
-	JedisPool getJedisPool() {
-		final JedisPoolConfig poolConfig = new JedisPoolConfig();
-		final JedisPool jedisPool = new JedisPool(poolConfig, redisHost, Integer.parseInt(redisPort), 0);
-		return jedisPool;
-	}
+@Bean
+JedisPool getJedisPool() {
+	final JedisPoolConfig poolConfig = new JedisPoolConfig();
+	final JedisPool jedisPool = new JedisPool(poolConfig, redisHost, Integer.parseInt(redisPort), 0);
+	return jedisPool;
+}
 
-	@Bean
-	Publisher getPublisher() {
-		return new Publisher(getRedisClient(), redisChannel);
-	}
+@Bean
+Publisher getPublisher() {
+	return new Publisher(getRedisClient(), redisChannel);
+}
 ```
 4. Publish messages with Publisher
 ```java
@@ -136,97 +136,97 @@ public class ContractController {
 ```
 2. Create SubscriberHandler class
 ```java
-	public class SubscriberHandler extends JedisPubSub {
+public class SubscriberHandler extends JedisPubSub {
 
-		@Override
-		public void onMessage(String channel, String message) {
-			System.out.println("channel: " + channel + ", message: " + message);
-		}
-
-		@Override
-		public void onPMessage(String pattern, String channel, String message) {
-		}
-
-		@Override
-		public void onSubscribe(String channel, int subscribedChannels) {
-		}
-
-		@Override
-		public void onUnsubscribe(String channel, int subscribedChannels) {
-		}
-
-		@Override
-		public void onPUnsubscribe(String pattern, int subscribedChannels) {
-		}
-
-		@Override
-		public void onPSubscribe(String pattern, int subscribedChannels) {
-		}
+	@Override
+	public void onMessage(String channel, String message) {
+		System.out.println("channel: " + channel + ", message: " + message);
 	}
+
+	@Override
+	public void onPMessage(String pattern, String channel, String message) {
+	}
+
+	@Override
+	public void onSubscribe(String channel, int subscribedChannels) {
+	}
+
+	@Override
+	public void onUnsubscribe(String channel, int subscribedChannels) {
+	}
+
+	@Override
+	public void onPUnsubscribe(String pattern, int subscribedChannels) {
+	}
+
+	@Override
+	public void onPSubscribe(String pattern, int subscribedChannels) {
+	}
+}
 ```
 3. Create SubscriberListener class
 ```java
-	@Component
-	public class SubscriberListener implements DisposableBean, Runnable {
-		private static Thread THREAD;
-		private boolean isRunning = true;
+@Component
+public class SubscriberListener implements DisposableBean, Runnable {
+	private static Thread THREAD;
+	private boolean isRunning = true;
 
-		@Autowired
-		Jedis jedis;
+	@Autowired
+	Jedis jedis;
 
-		@Autowired
-		SubscriberHandler handler;
+	@Autowired
+	SubscriberHandler handler;
 
-		@Value("${redis.channel}")
-		private String redisChannel;
+	@Value("${redis.channel}")
+	private String redisChannel;
 
-		private SubscriberListener() {
-			Thread thread = getThreadByName("Subscriber");
-			if (thread != null) {
-				THREAD = thread;
-			} else {
-				THREAD = new Thread(this);
-				THREAD.setName("Subscriber");
-			}
-		}
-
-		private Thread getThreadByName(String threadName) {
-			for (Thread t : Thread.getAllStackTraces().keySet()) {
-				if (t.getName().equals(threadName)) {
-					return t;
-				}
-			}
-			return null;
-		}
-
-		@Override
-		public void run() {
-			if (isRunning) {
-				try {
-					System.out.println("Subscriber listener started.");
-					jedis.subscribe(handler, redisChannel);
-					System.out.println("Subscriber listener ended.");
-				} catch (Exception e) {
-					System.out.println("Subscriber listener failed.");
-					e.printStackTrace();
-				}
-			} else {
-				System.out.println("Subscriber listener stopped.");
-			}
-		}
-
-		@Override
-		public void destroy() {
-			isRunning = false;
-		}
-
-		public void start() {
-			if (!THREAD.isAlive()) {
-				THREAD.start();
-			}
-			isRunning = true;
+	private SubscriberListener() {
+		Thread thread = getThreadByName("Subscriber");
+		if (thread != null) {
+			THREAD = thread;
+		} else {
+			THREAD = new Thread(this);
+			THREAD.setName("Subscriber");
 		}
 	}
+
+	private Thread getThreadByName(String threadName) {
+		for (Thread t : Thread.getAllStackTraces().keySet()) {
+			if (t.getName().equals(threadName)) {
+				return t;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void run() {
+		if (isRunning) {
+			try {
+				System.out.println("Subscriber listener started.");
+				jedis.subscribe(handler, redisChannel);
+				System.out.println("Subscriber listener ended.");
+			} catch (Exception e) {
+				System.out.println("Subscriber listener failed.");
+				e.printStackTrace();
+			}
+		} else {
+			System.out.println("Subscriber listener stopped.");
+		}
+	}
+
+	@Override
+	public void destroy() {
+		isRunning = false;
+	}
+
+	public void start() {
+		if (!THREAD.isAlive()) {
+			THREAD.start();
+		}
+		isRunning = true;
+	}
+}
 ```
 4. Create Bean for SubscriberHandler
 ```java
